@@ -6,45 +6,47 @@ onMounted(() => {
 
   const moveBlock = document.querySelector('.block-move')
 const ball = document.querySelector('.myNote')
+let position = null
 ball.onmousedown = function(event) {
   event.target.classList.add('active')
   ball.querySelector('.handles').classList.add('block-active')
-//   // console.log(event.target)
-//   let shiftX = event.clientX - ball.getBoundingClientRect().left;
-//   let shiftY = event.clientY - ball.getBoundingClientRect().top;
+  // console.log(event.target)
+  let shiftX = event.clientX - ball.getBoundingClientRect().left;
+  let shiftY = event.clientY - ball.getBoundingClientRect().top;
 
-//   ball.style.position = 'absolute';
-//   ball.style.zIndex = 10;
-//   document.body.append(ball);
+  ball.style.position = 'absolute';
+  ball.style.zIndex = 10;
+  document.body.append(ball);
 
-//   moveAt(event.pageX, event.pageY);
+  moveAt(event.pageX, event.pageY);
 
-//   // переносит мяч на координаты (pageX, pageY),
-//   // дополнительно учитывая изначальный сдвиг относительно указателя мыши
-//   function moveAt(pageX, pageY) {
-//     ball.style.left = pageX - shiftX + 'px';
-//     ball.style.top = pageY - shiftY + 'px';
-//   }
+  // переносит мяч на координаты (pageX, pageY),
+  // дополнительно учитывая изначальный сдвиг относительно указателя мыши
+  function moveAt(pageX, pageY) {
+    ball.style.left = pageX - shiftX + 'px';
+    ball.style.top = pageY - shiftY + 'px';
+    position = ball.getBoundingClientRect();
+    // console.log( ball.getBoundingClientRect())
+  }
 
-//   function onMouseMove(event) {
-//     moveAt(event.pageX, event.pageY);
-//   }
+  function onMouseMove(event) {
+    moveAt(event.pageX, event.pageY);
+  }
 
-//   // передвигаем мяч при событии mousemove
-//   document.addEventListener('mousemove', onMouseMove);
+  // передвигаем мяч при событии mousemove
+  document.addEventListener('mousemove', onMouseMove);
 
-// // отпустить мяч, удалить ненужные обработчики
-//   ball.onmouseup = function() {
-//     document.removeEventListener('mousemove', onMouseMove);
-//     ball.onmouseup = null;
-//   };
+// отпустить мяч, удалить ненужные обработчики
+  ball.onmouseup = function() {
+    document.removeEventListener('mousemove', onMouseMove);
+    ball.onmouseup = null;
+  };
 
 };
 
 ball.ondragstart = function() {
 return false;
 };
-
 
 document.addEventListener('click', ((e) => {
   if (e.target === ball) {
@@ -61,32 +63,77 @@ handles.forEach((handle) => {
   const currentResizer = handle
   let pos = ball.getBoundingClientRect();
   currentResizer.addEventListener('mousedown', function(e) {
+    position = ball.getBoundingClientRect();
+    console.log("положение", e.clientX, "отступ блока слева", position.left, "ширина блока", position.width)
     // e.preventDefault()
     // console.log(e.target)
   
     window.addEventListener('mousemove',  resize)
     window.addEventListener('mouseup',  stopResize)
+    e.stopPropagation()
   })
-  // return currentResizer
+
 
   function resize(e) {
-  // console.log('eeeeeee',currentResizer)
+  // боковые
   if (currentResizer.classList.contains('mr')) {
+    // console.log(e.clientX, position.left)
+    ball.style.width =  e.clientX - position.left - 8 + 'px';
+  }
+  if (currentResizer.classList.contains('ml')) {
+    // console.log(e.clientX, position.left)
+    ball.style.left = e.clientX + 'px'
+    ball.style.width = position.width + (position.left - e.clientX )  + 'px'
+  }
+
+  // вертикальные
+  if (currentResizer.classList.contains('bc')) {
     // console.log(e.clientX, pos.left)
-    ball.style.width = e.clientX - pos.left + 'px';
+    ball.style.height = e.clientY - position.top - 8 + 'px';
+  }
+  if (currentResizer.classList.contains('tc')) {
+    ball.style.top = e.clientY + 'px'
+    ball.style.height = position.height + (position.top - e.clientY - 8) + 'px'
+  }
+
+
+
+// угловые
+  if (currentResizer.classList.contains('br')) {
+    // console.log(e.clientX, pos.left)
+    ball.style.width = e.clientX - position.left - 8 + 'px';
+    ball.style.height = e.clientY - position.top - 8 + 'px';
+  }
+  if (currentResizer.classList.contains('tr')) {
+    // console.log(e.clientX, pos.left)
+    ball.style.width = e.clientX - position.left - 8 + 'px';
+    
+    ball.style.top = e.clientY + 'px'
+    ball.style.height = position.height + (position.top - e.clientY - 8) + 'px'
+  }
+
+  if (currentResizer.classList.contains('bl')) {
+    // console.log(e.clientX, pos.left)
+    ball.style.left = e.clientX + 'px'
+    ball.style.width = position.width + (position.left - e.clientX )  + 'px'
+    ball.style.height = e.clientY - position.top - 8 + 'px';
+  }
+  if (currentResizer.classList.contains('tl')) {
+    // console.log(e.clientX, pos.left)
+    ball.style.left = e.clientX + 'px'
+    ball.style.width = position.width + (position.left - e.clientX )  + 'px'
+    ball.style.top = e.clientY + 'px'
+    ball.style.height = position.height + (position.top - e.clientY - 8) + 'px'
   }
 }
 
+
 function stopResize() {
-  console.log('езда рулям')
   window.removeEventListener('mousemove',  resize)
 }
 })
 
 })
-
-
-
 
 //////////////////////////////////////////////////
 
@@ -104,14 +151,14 @@ const element = ref({
 <template>
     <section class="desk">
       <div class="block block-move">
-        <draggable-resizable-vue
+        <!-- <draggable-resizable-vue
           class="tasks-note"
           v-model:x="element.x"
           v-model:y="element.y"
           v-model:h="element.height"
           v-model:w="element.width"
           v-model:active="element.isActive"
-        />
+        /> -->
         <div class="tasks-note myNote" >
           <p>stay alive</p>
           <div class="handles">
