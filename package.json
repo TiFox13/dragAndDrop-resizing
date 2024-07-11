@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "draggable-resizable-vue3": "^1.0.94-beta",
     "vue": "^3.4.29"
   },
   "devDependencies": {

@@ -1,20 +1,16 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import DraggableResizableVue from 'draggable-resizable-vue3'
 
 onMounted(() => {
 const activeNote = ref(null)
 
 const moveBlock = document.querySelector('.block-move')
 const notes = document.querySelectorAll('.myNote')
-// const ball = document.querySelector('.myNote')
 let position = null
-// let activeNotePosition = null
 
 notes.forEach((ball) => {
 
 ball.onmousedown = function(event) {
-  // console.log(event.target)
   if (activeNote.value !== event.target.id) {
     if (activeNote.value !== null) {
       position = null
@@ -23,10 +19,9 @@ ball.onmousedown = function(event) {
     }
     
     activeNote.value = event.target
-    // console.log(activeNote.value.id)
   }
 
-  // event.target.classList.add('active')
+  activeNote.value.classList.add('active')
   activeNote.value.querySelector('.handles').classList.add('block-active')
   let shiftX = event.clientX - activeNote.value.getBoundingClientRect().left;
   let shiftY = event.clientY - activeNote.value.getBoundingClientRect().top;
@@ -65,9 +60,7 @@ return false;
 };
 
 document.addEventListener('click', ((e) => {
-  if (e.target === ball) {
-  //  e.target.classList.add('active') 
-  } else {
+  if (e.target !== ball && activeNote.value !== null) {
     activeNote.value.classList.remove('active');
     activeNote.value.querySelector('.handles').classList.remove('block-active')
   }
