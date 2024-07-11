@@ -3,30 +3,46 @@ import {onMounted, ref} from 'vue'
 import DraggableResizableVue from 'draggable-resizable-vue3'
 
 onMounted(() => {
+const activeNote = ref(null)
 
-  const moveBlock = document.querySelector('.block-move')
-const ball = document.querySelector('.myNote')
+const moveBlock = document.querySelector('.block-move')
+const notes = document.querySelectorAll('.myNote')
+// const ball = document.querySelector('.myNote')
 let position = null
-ball.onmousedown = function(event) {
-  event.target.classList.add('active')
-  ball.querySelector('.handles').classList.add('block-active')
-  // console.log(event.target)
-  let shiftX = event.clientX - ball.getBoundingClientRect().left;
-  let shiftY = event.clientY - ball.getBoundingClientRect().top;
+// let activeNotePosition = null
 
-  ball.style.position = 'absolute';
-  ball.style.zIndex = 10;
-  document.body.append(ball);
+notes.forEach((ball) => {
+
+ball.onmousedown = function(event) {
+  // console.log(event.target)
+  if (activeNote.value !== event.target.id) {
+    if (activeNote.value !== null) {
+      position = null
+      activeNote.value.classList.remove('active');
+      activeNote.value.querySelector('.handles').classList.remove('block-active')
+    }
+    
+    activeNote.value = event.target
+    // console.log(activeNote.value.id)
+  }
+
+  // event.target.classList.add('active')
+  activeNote.value.querySelector('.handles').classList.add('block-active')
+  let shiftX = event.clientX - activeNote.value.getBoundingClientRect().left;
+  let shiftY = event.clientY - activeNote.value.getBoundingClientRect().top;
+
+  activeNote.value.style.position = 'absolute';
+  activeNote.value.style.zIndex = 10;
+  document.body.append(activeNote.value);
 
   moveAt(event.pageX, event.pageY);
 
   // переносит мяч на координаты (pageX, pageY),
   // дополнительно учитывая изначальный сдвиг относительно указателя мыши
   function moveAt(pageX, pageY) {
-    ball.style.left = pageX - shiftX + 'px';
-    ball.style.top = pageY - shiftY + 'px';
-    position = ball.getBoundingClientRect();
-    // console.log( ball.getBoundingClientRect())
+    activeNote.value.style.left = pageX - shiftX + 'px';
+    activeNote.value.style.top = pageY - shiftY + 'px';
+    position = activeNote.value.getBoundingClientRect();
   }
 
   function onMouseMove(event) {
@@ -34,12 +50,12 @@ ball.onmousedown = function(event) {
   }
 
   // передвигаем мяч при событии mousemove
-  document.addEventListener('mousemove', onMouseMove);
+  moveBlock.addEventListener('mousemove', onMouseMove);
 
 // отпустить мяч, удалить ненужные обработчики
-  ball.onmouseup = function() {
-    document.removeEventListener('mousemove', onMouseMove);
-    ball.onmouseup = null;
+activeNote.value.onmouseup = function() {
+    moveBlock.removeEventListener('mousemove', onMouseMove);
+    activeNote.value.onmouseup = null;
   };
 
 };
@@ -50,10 +66,10 @@ return false;
 
 document.addEventListener('click', ((e) => {
   if (e.target === ball) {
-   e.target.classList.add('active') 
+  //  e.target.classList.add('active') 
   } else {
-    ball.classList.remove('active');
-    ball.querySelector('.handles').classList.remove('block-active')
+    activeNote.value.classList.remove('active');
+    activeNote.value.querySelector('.handles').classList.remove('block-active')
   }
 }) )
 
@@ -61,13 +77,10 @@ document.addEventListener('click', ((e) => {
 const handles = document.querySelectorAll('.handle')
 handles.forEach((handle) => {
   const currentResizer = handle
-  let pos = ball.getBoundingClientRect();
   currentResizer.addEventListener('mousedown', function(e) {
-    position = ball.getBoundingClientRect();
-    console.log("положение", e.clientX, "отступ блока слева", position.left, "ширина блока", position.width)
-    // e.preventDefault()
-    // console.log(e.target)
-  
+    position = activeNote.value.getBoundingClientRect();
+    // console.log("положение", e.clientX, "отступ блока слева", position.left, "ширина блока", position.width)
+
     window.addEventListener('mousemove',  resize)
     window.addEventListener('mouseup',  stopResize)
     e.stopPropagation()
@@ -78,70 +91,68 @@ handles.forEach((handle) => {
   // боковые
   if (currentResizer.classList.contains('mr')) {
     // console.log(e.clientX, position.left)
-    ball.style.width =  e.clientX - position.left - 8 + 'px';
+    activeNote.value.style.width =  e.clientX - position.left - 8 + 'px';
   }
   if (currentResizer.classList.contains('ml')) {
     // console.log(e.clientX, position.left)
-    ball.style.left = e.clientX + 'px'
-    ball.style.width = position.width + (position.left - e.clientX )  + 'px'
+    activeNote.value.style.left = e.clientX + 'px'
+    activeNote.value.style.width = position.width + (position.left - e.clientX )  + 'px'
   }
 
   // вертикальные
   if (currentResizer.classList.contains('bc')) {
     // console.log(e.clientX, pos.left)
-    ball.style.height = e.clientY - position.top - 8 + 'px';
+    activeNote.value.style.height = e.clientY - position.top - 8 + 'px';
   }
   if (currentResizer.classList.contains('tc')) {
-    ball.style.top = e.clientY + 'px'
-    ball.style.height = position.height + (position.top - e.clientY - 8) + 'px'
+    activeNote.value.style.top = e.clientY + 'px'
+    activeNote.value.style.height = position.height + (position.top - e.clientY - 8) + 'px'
   }
-
-
 
 // угловые
   if (currentResizer.classList.contains('br')) {
-    // console.log(e.clientX, pos.left)
-    ball.style.width = e.clientX - position.left - 8 + 'px';
-    ball.style.height = e.clientY - position.top - 8 + 'px';
+    if (e.clientX - position.left - 8 >= minSize.value.width && e.clientY - position.top - 8 >= minSize.value.height) { 
+      activeNote.value.style.width = e.clientX - position.left - 8 + 'px';
+      activeNote.value.style.height = e.clientY - position.top - 8 + 'px';
+    }
   }
-  if (currentResizer.classList.contains('tr')) {
-    // console.log(e.clientX, pos.left)
-    ball.style.width = e.clientX - position.left - 8 + 'px';
-    
-    ball.style.top = e.clientY + 'px'
-    ball.style.height = position.height + (position.top - e.clientY - 8) + 'px'
+  if (currentResizer.classList.contains('bl')) {
+    if (position.width + (position.left - e.clientX) >= minSize.value.width && e.clientY - position.top - 8 >= minSize.value.height) {
+      activeNote.value.style.left = e.clientX + 'px'
+      activeNote.value.style.width = position.width + (position.left - e.clientX )  + 'px'
+      activeNote.value.style.height = e.clientY - position.top - 8 + 'px';
+    }
   }
 
-  if (currentResizer.classList.contains('bl')) {
-    // console.log(e.clientX, pos.left)
-    ball.style.left = e.clientX + 'px'
-    ball.style.width = position.width + (position.left - e.clientX )  + 'px'
-    ball.style.height = e.clientY - position.top - 8 + 'px';
+  if (currentResizer.classList.contains('tr')) {
+    if (e.clientX - position.left - 8 >= minSize.value.width && position.height + (position.top - e.clientY - 8) >= minSize.value.height) {
+      activeNote.value.style.width = e.clientX - position.left - 8 + 'px';
+      activeNote.value.style.top = e.clientY + 'px'
+      activeNote.value.style.height = position.height + (position.top - e.clientY - 8) + 'px' 
+    }
   }
   if (currentResizer.classList.contains('tl')) {
-    // console.log(e.clientX, pos.left)
-    ball.style.left = e.clientX + 'px'
-    ball.style.width = position.width + (position.left - e.clientX )  + 'px'
-    ball.style.top = e.clientY + 'px'
-    ball.style.height = position.height + (position.top - e.clientY - 8) + 'px'
+    if (position.width + (position.left - e.clientX) >= minSize.value.width && position.height + (position.top - e.clientY - 8) >= minSize.value.height) {
+      activeNote.value.style.left = e.clientX + 'px'
+      activeNote.value.style.width = position.width + (position.left - e.clientX) + 'px'
+      activeNote.value.style.top = e.clientY + 'px'
+      activeNote.value.style.height = position.height + (position.top - e.clientY - 8) + 'px'
+    }
   }
 }
 
-
-function stopResize() {
-  window.removeEventListener('mousemove',  resize)
-}
+  function stopResize() {
+    window.removeEventListener('mousemove',  resize)
+  }
 })
 
 })
-
+})
 //////////////////////////////////////////////////
 
-const element = ref({
-  x: 20,
-  y: 100,
-  width: 100,
-  height: 100,
+const minSize = ref({
+  width: 20,
+  height: 20,
   isActive: false,
 })
 
@@ -151,15 +162,10 @@ const element = ref({
 <template>
     <section class="desk">
       <div class="block block-move">
-        <!-- <draggable-resizable-vue
-          class="tasks-note"
-          v-model:x="element.x"
-          v-model:y="element.y"
-          v-model:h="element.height"
-          v-model:w="element.width"
-          v-model:active="element.isActive"
-        /> -->
-        <div class="tasks-note myNote" >
+        <div class="tasks-note myNote"  
+          :class="{'active' : activeNote === 1}"
+          id="1"
+        >
           <p>stay alive</p>
           <div class="handles">
             <div class="handle tl"></div>
@@ -175,6 +181,41 @@ const element = ref({
           </div>
         </div>
         
+        <div class="tasks-note myNote" id="2" 
+          style="  background-color: rgb(248, 168, 144); top: 120px"
+        >
+          <p>А?</p>
+          <div class="handles">
+            <div class="handle tl"></div>
+            <div class="handle tc"></div>
+            <div class="handle tr"></div>
+
+            <div class="handle ml"></div>
+            <div class="handle mr"></div>
+
+            <div class="handle bl"></div>
+            <div class="handle bc"></div>
+            <div class="handle br"></div>
+          </div>
+        </div>
+
+        <div class="tasks-note myNote" id="2" 
+          style="background-color: rgb(191, 248, 144);   top: 220px"
+        >
+          <p>nani?</p>
+          <div class="handles">
+            <div class="handle tl"></div>
+            <div class="handle tc"></div>
+            <div class="handle tr"></div>
+
+            <div class="handle ml"></div>
+            <div class="handle mr"></div>
+
+            <div class="handle bl"></div>
+            <div class="handle bc"></div>
+            <div class="handle br"></div>
+          </div>
+        </div>
       </div>
     </section>
 </template>
@@ -239,10 +280,6 @@ const element = ref({
   cursor: move; 
   padding: 5px;
 }
-.tasks-note:last-child {
-  margin-bottom: 0;
-}
-
 
 .selected {
   opacity: 0.6;
