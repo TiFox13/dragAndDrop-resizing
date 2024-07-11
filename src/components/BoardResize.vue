@@ -8,9 +8,9 @@ const moveBlock = document.querySelector('.block-move')
 const notes = document.querySelectorAll('.myNote')
 let position = null
 
-notes.forEach((ball) => {
+notes.forEach((note) => {
 
-ball.onmousedown = function(event) {
+note.onmousedown = function(event) {
   if (activeNote.value !== event.target.id) {
     if (activeNote.value !== null) {
       position = null
@@ -32,7 +32,7 @@ ball.onmousedown = function(event) {
 
   moveAt(event.pageX, event.pageY);
 
-  // переносит мяч на координаты (pageX, pageY),
+  // переносит карточку на координаты (pageX, pageY),
   // дополнительно учитывая изначальный сдвиг относительно указателя мыши
   function moveAt(pageX, pageY) {
     activeNote.value.style.left = pageX - shiftX + 'px';
@@ -44,23 +44,23 @@ ball.onmousedown = function(event) {
     moveAt(event.pageX, event.pageY);
   }
 
-  // передвигаем мяч при событии mousemove
-  moveBlock.addEventListener('mousemove', onMouseMove);
+  // передвигаем карточку при событии mousemove
+  document.addEventListener('mousemove', onMouseMove);
 
-// отпустить мяч, удалить ненужные обработчики
+// отпустить карточку, удалить ненужные обработчики
 activeNote.value.onmouseup = function() {
-    moveBlock.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mousemove', onMouseMove);
     activeNote.value.onmouseup = null;
   };
 
 };
 
-ball.ondragstart = function() {
+note.ondragstart = function() {
 return false;
 };
 
 document.addEventListener('click', ((e) => {
-  if (e.target !== ball && activeNote.value !== null) {
+  if (e.target !== note && activeNote.value !== null) {
     activeNote.value.classList.remove('active');
     activeNote.value.querySelector('.handles').classList.remove('block-active')
   }
@@ -72,29 +72,23 @@ handles.forEach((handle) => {
   const currentResizer = handle
   currentResizer.addEventListener('mousedown', function(e) {
     position = activeNote.value.getBoundingClientRect();
-    // console.log("положение", e.clientX, "отступ блока слева", position.left, "ширина блока", position.width)
-
-    window.addEventListener('mousemove',  resize)
-    window.addEventListener('mouseup',  stopResize)
+    document.addEventListener('mousemove',  resize)
+    document.addEventListener('mouseup',  stopResize)
     e.stopPropagation()
   })
-
 
   function resize(e) {
   // боковые
   if (currentResizer.classList.contains('mr')) {
-    // console.log(e.clientX, position.left)
     activeNote.value.style.width =  e.clientX - position.left - 8 + 'px';
   }
   if (currentResizer.classList.contains('ml')) {
-    // console.log(e.clientX, position.left)
     activeNote.value.style.left = e.clientX + 'px'
     activeNote.value.style.width = position.width + (position.left - e.clientX )  + 'px'
   }
 
   // вертикальные
   if (currentResizer.classList.contains('bc')) {
-    // console.log(e.clientX, pos.left)
     activeNote.value.style.height = e.clientY - position.top - 8 + 'px';
   }
   if (currentResizer.classList.contains('tc')) {
@@ -135,12 +129,13 @@ handles.forEach((handle) => {
 }
 
   function stopResize() {
-    window.removeEventListener('mousemove',  resize)
+    document.removeEventListener('mousemove',  resize)
   }
 })
 
 })
 })
+
 //////////////////////////////////////////////////
 
 const minSize = ref({
@@ -148,7 +143,6 @@ const minSize = ref({
   height: 20,
   isActive: false,
 })
-
 
 </script>
 
